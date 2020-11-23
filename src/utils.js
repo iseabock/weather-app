@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 const API_KEY = process.env.REACT_APP_OWM_API_KEY;
+const DEFAULT_UNITS = 'imperial';
 
-const useFetchWeather = (cityName) => {
+const useFetchWeather = (cityName, units = DEFAULT_UNITS) => {
     const isFirstRun = useRef(true);
     const [state, setState] = useState({
         isLoading: true,
@@ -28,7 +29,7 @@ const useFetchWeather = (cityName) => {
             try {
                 // Fetch weather data from openweathermap
                 const response = await fetch(
-                    `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}`,
+                    `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`,
                     {
                         method: 'GET',
                     }
@@ -39,7 +40,7 @@ const useFetchWeather = (cityName) => {
                     throw new Error(`Request Error: ${response.status}`);
                 }
 
-                // On successful fetch set data to our jhson response object
+                // On successful fetch set data to our json response object
                 setState({
                     isLoading: false,
                     data: await response.json(),
@@ -55,7 +56,7 @@ const useFetchWeather = (cityName) => {
         };
 
         fetchWeather();
-    }, [cityName]);
+    }, [cityName, units]);
 
     return state;
 };

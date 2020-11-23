@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const API_KEY = process.env.REACT_APP_OWM_API_KEY;
 
-const useFetchWeather = (query) => {
+const useFetchWeather = (cityName) => {
+    const isFirstRun = useRef(true);
     const [state, setState] = useState({
         isLoading: true,
         error: null,
@@ -10,6 +11,12 @@ const useFetchWeather = (query) => {
     });
 
     useEffect(() => {
+        // Do not run this function when component mounts. Wait for user input.
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
+
         const fetchWeather = async () => {
             // Set state to loading true before each call for spinner and/or conditional rendering
             setState({
@@ -21,7 +28,7 @@ const useFetchWeather = (query) => {
             try {
                 // Fetch weather data from openweathermap
                 const response = await fetch(
-                    `http://api.openweathermap.org/data/2.5/weather?q=${query.cityName}&appid=${API_KEY}`,
+                    `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}`,
                     {
                         method: 'GET',
                     }
@@ -48,7 +55,7 @@ const useFetchWeather = (query) => {
         };
 
         fetchWeather();
-    }, [query]);
+    }, [cityName]);
 
     return state;
 };

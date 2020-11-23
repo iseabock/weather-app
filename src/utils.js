@@ -1,22 +1,56 @@
-const fetchWeather = async (cityName) => {
-    const API_KEY = process.env.REACT_APP_OWM_API_KEY;
+import { useEffect, useState } from 'react';
 
-    try {
-        const response = await fetch(
-            `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}`,
-            {
-                method: 'GET',
+const API_KEY = process.env.REACT_APP_OWM_API_KEY;
+
+const useFetchWeather = (query) => {
+    const [state, setState] = useState({
+        isLoading: true,
+        error: null,
+        data: null,
+    });
+
+    useEffect(() => {
+        const fetchWeather = async () => {
+            // Set state to loading true before each call for spinner and/or conditional rendering
+            setState({
+                isLoading: true,
+                data: null,
+                error: null,
+            });
+
+            try {
+                // Fetch weather data from openweathermap
+                const response = await fetch(
+                    `http://api.openweathermap.org/data/2.5/weather?q=${query.cityName}&appid=${API_KEY}`,
+                    {
+                        method: 'GET',
+                    }
+                );
+
+                // Set error if response fails
+                if (!response.ok) {
+                    throw new Error(`Request Error: ${response.status}`);
+                }
+
+                // On successful fetch set data to our jhson response object
+                setState({
+                    isLoading: false,
+                    data: await response.json(),
+                    error: null,
+                });
+            } catch (error) {
+                setState({
+                    isLoading: false,
+                    data: null,
+                    error: error,
+                });
             }
-        );
+        };
 
-        if (!response.ok) {
-            throw new Error(`Request Error: ${response.status}`);
-        }
+        fetchWeather();
+    }, [query]);
 
-        return await response.json();
-    } catch (error) {
-        console.log('error', error);
-    }
+    return state;
 };
 
-export default fetchWeather;
+export default useFetchWeather;

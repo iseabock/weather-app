@@ -2,8 +2,50 @@ import { useEffect, useRef, useState } from 'react';
 
 const API_KEY = process.env.REACT_APP_OWM_API_KEY;
 const DEFAULT_UNITS = 'imperial';
+const DAYS = 5;
 
-const useFetchWeather = (cityName, units = DEFAULT_UNITS) => {
+const fetchWeather = async (cityName, units) => {
+    try {
+        // Fetch weather data from openweathermap
+        const weatherResponse = await fetch(
+            `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`,
+            {
+                method: 'GET',
+            }
+        );
+
+        // Set error if response fails
+        if (!weatherResponse.ok) {
+            throw new Error(`Request Error: ${weatherResponse.status}`);
+        }
+        return await weatherResponse.json();
+    } catch (error) {
+        console.log('error', error);
+    }
+};
+
+const fetchForcast = async (cityName, units) => {
+    try {
+        // Fetch forcast data from openweathermap
+        const forcastResponse = await fetch(
+            `http://api.openweathermap.org/data/2.5/forecast/daily?q=${cityName}&units=${units}&cnt=${DAYS}&appid=${API_KEY}`,
+            {
+                method: 'GET',
+            }
+        );
+
+        if (!forcastResponse.ok) {
+            throw new Error(`Request Error: ${forcastResponse.status}`);
+        }
+
+        return await forcastResponse.json();
+    } catch (error) {
+        console.log('error', error);
+        return error;
+    }
+};
+
+const useWeatherAndForcast = (cityName, units = DEFAULT_UNITS) => {
     const isFirstRun = useRef(true);
     const [state, setState] = useState({
         isLoading: true,
@@ -18,47 +60,25 @@ const useFetchWeather = (cityName, units = DEFAULT_UNITS) => {
             return;
         }
 
-        const fetchWeather = async () => {
-            // Set state to loading true before each call for spinner and/or conditional rendering
+        setState({
+            isLoading: true,
+            data: null,
+            error: null,
+        });
+
+        const weather = fetchWeather(cityName, units);
+        const forcast = fetchForcast(cityName, units);
+
+        Promise.all([weather, forcast]).then((values) => {
             setState({
-                isLoading: true,
-                data: null,
+                isLoading: false,
+                data: { weather: values[0], forcast: values[1] },
                 error: null,
             });
-
-            try {
-                // Fetch weather data from openweathermap
-                const response = await fetch(
-                    `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=${units}&appid=${API_KEY}`,
-                    {
-                        method: 'GET',
-                    }
-                );
-
-                // Set error if response fails
-                if (!response.ok) {
-                    throw new Error(`Request Error: ${response.status}`);
-                }
-
-                // On successful fetch set data to our json response object
-                setState({
-                    isLoading: false,
-                    data: await response.json(),
-                    error: null,
-                });
-            } catch (error) {
-                setState({
-                    isLoading: false,
-                    data: null,
-                    error: error,
-                });
-            }
-        };
-
-        fetchWeather();
+        });
     }, [cityName, units]);
 
     return state;
 };
 
-export default useFetchWeather;
+export default useWeatherAndForcast;

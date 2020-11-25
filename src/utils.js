@@ -60,6 +60,11 @@ const useWeatherAndForcast = (cityName, units = DEFAULT_UNITS) => {
             return;
         }
 
+        // Do not run if cityName empty
+        if (cityName === '') {
+            return;
+        }
+
         setState({
             isLoading: true,
             data: null,

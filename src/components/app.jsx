@@ -1,9 +1,23 @@
-import React from "react";
-import { ReactComponent as Logo } from "../images/sun.svg";
-import "../App.css";
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+
+import Weather from './Weather';
+
+import '../App.css';
 
 function App() {
-  return <h1>Weather</h1>;
+    return (
+        <Router>
+            <Switch>
+                <Route path="/">
+                    <Weather />
+                </Route>
+                <Route path="/:cityName">
+                    <Weather />
+                </Route>
+            </Switch>
+        </Router>
+    );
 }
 
 export default App;

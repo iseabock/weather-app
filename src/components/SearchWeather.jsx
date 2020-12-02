@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     FormControlLabel,
     FormGroup,
@@ -11,28 +11,55 @@ import {
     Typography,
     makeStyles,
 } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+
 import useWeatherAndForcast from '../utils';
 
 const SearchWeather = (props) => {
-    const { dataChange } = props;
+    const classes = useStyles();
+    const history = useHistory();
+    const isFirstRun = useRef(true);
     const [cityInputValue, setCityInputValue] = useState('');
     const [cityName, setCityName] = useState('');
-    // const [unitsChecked, setUnitsChecked] = useState(true);
     const [units, setUnits] = useState('imperial');
-
     const { isLoading, data, error } = useWeatherAndForcast(cityName, units);
 
-    const classes = useStyles();
+    const { dataChange } = props;
 
     const handleSubmit = async (event) => {
         setCityName(cityInputValue);
         event.preventDefault();
     };
 
+    // Set URL to contain cityName
+    useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
+
+        if (cityName) {
+            history.push({
+                pathname: `/${cityName}`,
+            });
+        }
+    }, [cityName, history]);
+
+    // set cityName if pathname exists for sharing weather
+    useEffect(() => {
+        let cityNamePath = window.location.pathname.replace(/\//g, '');
+
+        if (cityNamePath.length > 1) {
+            setCityName(cityNamePath);
+        }
+    }, []);
+
+    // When cityName changes trigger another fetch
     useEffect(() => {
         const returnWeatherObject = () => {
             dataChange({ isLoading, data, error });
         };
+
         returnWeatherObject();
     }, [isLoading, data, error, dataChange]);
 
@@ -89,8 +116,8 @@ const SearchWeather = (props) => {
                                 control={<Radio />}
                                 label={
                                     <Typography
+                                        className={classes.unitLabel}
                                         variant="h6"
-                                        style={{ color: '#2979ff' }}
                                     >
                                         Fahrenheit
                                     </Typography>
@@ -101,8 +128,8 @@ const SearchWeather = (props) => {
                                 control={<Radio />}
                                 label={
                                     <Typography
+                                        className={classes.unitLabel}
                                         variant="h6"
-                                        style={{ color: '#2979ff' }}
                                     >
                                         Celsius
                                     </Typography>
@@ -122,6 +149,9 @@ const useStyles = makeStyles({
     },
     searchArrow: {
         margin: '3px 0 0 0',
+    },
+    unitLabel: {
+        color: '#333333',
     },
 });
 

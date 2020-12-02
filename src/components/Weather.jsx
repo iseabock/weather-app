@@ -6,6 +6,7 @@ import SearchWeather from './SearchWeather';
 import CurrentWeather from './CurrentWeather';
 import ForcastWeather from './ForcastWeather';
 import ShareWeather from './ShareWeather';
+import ErrorComponent from './ErrorComponent';
 
 const Weather = (props) => {
     const classes = useStyles();
@@ -37,6 +38,7 @@ const Weather = (props) => {
                         <ShareWeather />
                     </>
                 )}
+                {error && <ErrorComponent />}
             </Grid>
         </Container>
     );

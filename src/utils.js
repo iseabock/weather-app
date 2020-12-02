@@ -20,13 +20,14 @@ const fetchWeather = async (cityName, units) => {
         }
         return await weatherResponse.json();
     } catch (error) {
-        console.log('error', error);
+        console.log('weatherResponse error', error);
+        return Promise.reject(error);
     }
 };
 
 const fetchForcast = async (cityName, units) => {
     try {
-        // Fetch forcast data from openweathermap
+        // Fetch forcast data from openweathermap.org
         const forcastResponse = await fetch(
             `http://api.openweathermap.org/data/2.5/forecast/daily?q=${cityName}&units=${units}&cnt=${DAYS}&appid=${API_KEY}`,
             {
@@ -40,8 +41,8 @@ const fetchForcast = async (cityName, units) => {
 
         return await forcastResponse.json();
     } catch (error) {
-        console.log('error', error);
-        return error;
+        console.log('forcastResponse error', error);
+        return Promise.reject(error);
     }
 };
 
@@ -74,13 +75,21 @@ const useWeatherAndForcast = (cityName, units = DEFAULT_UNITS) => {
         const weather = fetchWeather(cityName, units);
         const forcast = fetchForcast(cityName, units);
 
-        Promise.all([weather, forcast]).then((values) => {
-            setState({
-                isLoading: false,
-                data: { weather: values[0], forcast: values[1] },
-                error: null,
+        Promise.all([weather, forcast])
+            .then((data) => {
+                setState({
+                    isLoading: false,
+                    data: { weather: data[0], forcast: data[1] },
+                    error: null,
+                });
+            })
+            .catch((error) => {
+                setState({
+                    isLoading: false,
+                    data: null,
+                    error: error.message,
+                });
             });
-        });
     }, [cityName, units]);
 
     return state;
